@@ -10,6 +10,8 @@
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 3 as published by
  *  the Free Software Foundation.
+ *  
+ *  Redistribute by Je7sen 2013
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,9 +29,6 @@
 //////////////////////////////////////////////
 // step parameters
 const float stepSize[2] = {0.07, 0.3}; // mm per step [x, y]
-const int fastDelay[2] = {1, 2}; // determines movement speed by
-const int slowDelay[2] = {3, 6}; // delaying milliseconds after each step
-
 
 // this is for four-wire Unipolar steppers
 AF_Stepper motor_x(200, 1);
@@ -62,9 +61,6 @@ const int PEN_SERVO_PIN = 9;
 int penAngleUp = 120;
 int penAngleDown = 90;
 
-int delayPenDown = 4000;
-int delayPenUp = 600;
-
 Servo penServo;
 
 // the current position
@@ -73,9 +69,6 @@ int poss[2];
 
 // the current motor states
 int mstate[2]; // 0=+off 1=+- 2=off- 3=-- 4=-off 5=-+ 6=off+ 7=++
-// motor speed delay
-int useDelay[2];
-
 
 // used by the drawing function
 int xSteps, ySteps;
@@ -101,34 +94,26 @@ void setup(){
     stepper_y.setMaxSpeed(300.0);
     stepper_y.setAcceleration(100.0);
     stepper_y.moveTo(1600);
-
   
   // put both motors in state 0 = +off
   mstate[0] = 0;
   mstate[1] = 0;
 
-  
-
   //pen servo
   penServo.attach(PEN_SERVO_PIN);
   penServo.write(penAngleUp);
   delay(500);
-  
-  useDelay[0] = fastDelay[0];
-  useDelay[1] = fastDelay[1];
-  
+
   // initialize the numbers
   posmm[0] = 0.0;
   posmm[1] = 0.0;
   poss[0] = 0;
   poss[1] = 0;
  
-    
   // set up the serial stuff
   Serial.begin(9600);
   started = false;
   zdown = false;
-  
   
   posmm[0] = 0.0;
   posmm[1] = 0.0;
@@ -156,8 +141,6 @@ void loop() {
     Serial.println("S");
     Serial.read();
     delay(10);
-    //stepper_x.enableOutputs();
-    //stepper_y.enableOutputs();
    }
    
   else if(Serial.peek() == 'T')
@@ -170,8 +153,8 @@ void loop() {
     raisePen();
     drawLine(0.0, 0.0);
     delay(10);
+    //disable motor to save power
     motor_x.release();
-    
     motor_y.release();
     
     posmm[0] = 0.0;
@@ -179,6 +162,49 @@ void loop() {
     poss[0] = 0;
     poss[1] = 0;
     
+  }
+  
+  else if(Serial.peek() == 'U')
+  {
+    stepper_x.setSpeed(250); 
+    stepper_x.move(5950);  
+    stepper_x.runToPosition();
+  }
+  
+   else if(Serial.peek() == 'X')
+  {
+    stepper_x.setSpeed(-250); 
+    stepper_x.move(-5950);  
+    stepper_x.runToPosition();
+  } 
+  
+  else if(Serial.peek() == 'L')
+  {
+    stepper_y.setSpeed(-150); 
+    stepper_y.move(-1600);  
+    stepper_y.runToPosition();
+  } 
+  
+  else if(Serial.peek() == 'R')
+  {
+    stepper_y.setSpeed(150); 
+    stepper_y.move(1600);  
+    stepper_y.runToPosition();
+  } 
+  
+  else if(Serial.peek() == 'E')
+  {
+    stepper_y.setSpeed(150); 
+    stepper_y.move(1600);  
+    stepper_y.runToPosition();
+    //disable motor to save power
+    motor_x.release();
+    motor_y.release();
+    
+    posmm[0] = 0.0;
+    posmm[1] = 0.0;
+    poss[0] = 0;
+    poss[1] = 0;
   }
   
   else if(Serial.peek() == 'A')
@@ -233,8 +259,6 @@ void loop() {
           xfinish = true;
           Serial.println(".x");
           delay(10);
-          
-          //continue;
         }
         else if(tmpchar == '-'){
           sign = -1;
@@ -245,12 +269,10 @@ void loop() {
           newx = (newx*10.0) + tmpchar-'0';
           Serial.println(newx);
           delay(10);
-          
-          
         }
         charcount++;
         while(Serial.available() > 0){
-        Serial.read(); // cle/1ar the port
+        Serial.read(); // clear the port
       }
       }
       newx = (newx*sign)/10000.0;
@@ -284,8 +306,7 @@ void loop() {
           xfinish = false;
           Serial.println(".y");
           delay(10);
-          
-          //continue;
+
         }
         else if(tmpchar == '-'){
           sign = -1;
@@ -295,8 +316,7 @@ void loop() {
         }else{
           newy = (newy*10.0) + tmpchar-'0';
           Serial.println(newy);
-          delay(10);
-          
+          delay(10);       
           
         }
         charcount++;
@@ -315,8 +335,8 @@ void loop() {
     // now we have newx and newy. 
     drawLine(newx, newy);
     delay(10);
+    //release motor to save power
     motor_x.release();
-    
     motor_y.release();
     Serial.write('D');
     delay(10);
@@ -352,8 +372,6 @@ boolean isPenDown() {
 
 void oneStep(int m, int dir){
   // make one step with motor number m in direction dir
-  // then delay for useDelay millis
-  // 0=+off 1=+- 2=off- 3=-- 4=-off 5=-+ 6=off+ 7=++
   if(dir > 0){
     if(m==0)
     {
@@ -375,7 +393,7 @@ void oneStep(int m, int dir){
     
   }
   else{
-    // 0=+off 1=+- 2=off- 3=-- 4=-off 5=-+ 6=off+ 7=++
+
     if(m==0)
     {
     poss[m]--;
@@ -394,8 +412,7 @@ void oneStep(int m, int dir){
       stepper_y.runToPosition();
     }
   }
-  // Wait a bit
-  //delay(useDelay[m]);
+
 }
 
 /*
@@ -403,8 +420,7 @@ void oneStep(int m, int dir){
 * to the point (x2, y2)
 */
 void drawLine(float x2, float y2){
-  useDelay[0] = fastDelay[0];
-  useDelay[1] = fastDelay[1];
+
   // determine the direction and number of steps
   xdir = 1;
   if(x2-posmm[0] < 0 ) xdir = -1;
