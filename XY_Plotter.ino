@@ -167,36 +167,34 @@ void loop() {
   else if(Serial.peek() == 'U')
   {
     stepper_x.setSpeed(250); 
-    stepper_x.move(5950);  
+    stepper_x.move(142);  
     stepper_x.runToPosition();
   }
   
    else if(Serial.peek() == 'X')
   {
     stepper_x.setSpeed(-250); 
-    stepper_x.move(-5950);  
+    stepper_x.move(-142);  
     stepper_x.runToPosition();
   } 
   
   else if(Serial.peek() == 'L')
   {
     stepper_y.setSpeed(-150); 
-    stepper_y.move(-1600);  
+    stepper_y.move(-33);  
     stepper_y.runToPosition();
   } 
   
   else if(Serial.peek() == 'R')
   {
     stepper_y.setSpeed(150); 
-    stepper_y.move(1600);  
+    stepper_y.move(33);  
     stepper_y.runToPosition();
   } 
   
   else if(Serial.peek() == 'E')
   {
-    stepper_y.setSpeed(150); 
-    stepper_y.move(1600);  
-    stepper_y.runToPosition();
+    
     //disable motor to save power
     motor_x.release();
     motor_y.release();
