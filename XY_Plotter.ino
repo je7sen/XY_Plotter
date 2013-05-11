@@ -28,11 +28,11 @@
 // Set these variables to match your setup
 //////////////////////////////////////////////
 // step parameters
-const float stepSize[2] = {0.07, 0.3}; // mm per step [x, y]
+const float stepSize[2] = {0.07,0.3}; // mm per step [x,y]
 
 // this is for four-wire Unipolar steppers
-AF_Stepper motor_x(200, 1);
-AF_Stepper motor_y(200, 2);
+AF_Stepper motor_y(200, 1);
+AF_Stepper motor_x(200, 2);
 
 // you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
 // wrappers for the first motor!
@@ -67,9 +67,6 @@ Servo penServo;
 float posmm[2];
 int poss[2];
 
-// the current motor states
-int mstate[2]; // 0=+off 1=+- 2=off- 3=-- 4=-off 5=-+ 6=off+ 7=++
-
 // used by the drawing function
 int xSteps, ySteps;
 int xdir, ydir;
@@ -95,9 +92,6 @@ void setup(){
     stepper_y.setAcceleration(100.0);
     stepper_y.moveTo(1600);
   
-  // put both motors in state 0 = +off
-  mstate[0] = 0;
-  mstate[1] = 0;
 
   //pen servo
   penServo.attach(PEN_SERVO_PIN);
