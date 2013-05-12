@@ -84,11 +84,11 @@ boolean xfinish;
 
 void setup(){
     
-    stepper_x.setMaxSpeed(300.0);
+    stepper_x.setMaxSpeed(500.0);
     stepper_x.setAcceleration(100.0);
     stepper_x.moveTo(5950);
     
-    stepper_y.setMaxSpeed(300.0);
+    stepper_y.setMaxSpeed(500.0);
     stepper_y.setAcceleration(100.0);
     stepper_y.moveTo(1600);
   
@@ -374,14 +374,14 @@ boolean isPenDown() {
 }
 
 
-void oneStep(int m, int dir){
+void oneStep(int m, int dir, int xspeed, int yspeed){
   // make one step with motor number m in direction dir
   if(dir > 0){
     if(m==0)
     {
     poss[m]++;
     posmm[m] += stepSize[m];
-    stepper_x.setSpeed(250); 
+    stepper_x.setSpeed(xspeed); 
     stepper_x.move(1);  
     stepper_x.runToPosition();
     }
@@ -390,7 +390,7 @@ void oneStep(int m, int dir){
     {
       poss[m]++;
       posmm[m] += stepSize[m];
-      stepper_y.setSpeed(150);
+      stepper_y.setSpeed(yspeed);
       stepper_y.move(1);
       stepper_y.runToPosition();
     }
@@ -402,7 +402,7 @@ void oneStep(int m, int dir){
     {
     poss[m]--;
     posmm[m] -= stepSize[m];
-    stepper_x.setSpeed(-250);
+    stepper_x.setSpeed(-xspeed);
     stepper_x.move(-1);
     stepper_x.runToPosition();
     }
@@ -411,7 +411,7 @@ void oneStep(int m, int dir){
     {
       poss[m]--;
       posmm[m] -= stepSize[m];
-      stepper_y.setSpeed(-150);
+      stepper_y.setSpeed(-yspeed);
       stepper_y.move(-1);
       stepper_y.runToPosition();
     }
@@ -445,11 +445,11 @@ void drawLine(float x2, float y2){
      
       // move one x step at a time
       dx++;
-      oneStep(0, xdir);
+      oneStep(0, xdir ,350,150);
       // if needed, move y one step
       if(ySteps*ydir > 0 && slope*dx > dy+0.5){
         dy++;
-        oneStep(1, ydir);
+        oneStep(1, ydir, 350 , 150);
       }
     }
     
@@ -459,11 +459,11 @@ void drawLine(float x2, float y2){
       
       // move one y step at a time
       dy++;
-      oneStep(1, ydir);
+      oneStep(1, ydir, 250,150);
       // if needed, move y one step
       if(xSteps*xdir > 0 && dy > slope*(dx+0.5)){
         dx++;
-        oneStep(0, xdir);
+        oneStep(0, xdir,250,150);
       }
     }
     
