@@ -84,11 +84,11 @@ boolean xfinish;
 
 void setup(){
     
-    stepper_x.setMaxSpeed(500.0);
+    stepper_x.setMaxSpeed(800.0);
     stepper_x.setAcceleration(100.0);
     stepper_x.moveTo(5950);
     
-    stepper_y.setMaxSpeed(500.0);
+    stepper_y.setMaxSpeed(800.0);
     stepper_y.setAcceleration(100.0);
     stepper_y.moveTo(1600);
   
@@ -445,12 +445,16 @@ void drawLine(float x2, float y2){
      
       // move one x step at a time
       dx++;
-      oneStep(0, xdir ,350,150);
+      oneStep(0, xdir ,450,200);
       // if needed, move y one step
-      if(ySteps*ydir > 0 && slope*dx > dy+0.5){
+      
+        if(ySteps*ydir > 0 && slope*dx > dy){
         dy++;
-        oneStep(1, ydir, 350 , 150);
+        oneStep(1, ydir, 450 , 200);
       }
+      
+      
+    
     }
     
   }
@@ -459,11 +463,12 @@ void drawLine(float x2, float y2){
       
       // move one y step at a time
       dy++;
-      oneStep(1, ydir, 250,150);
+      oneStep(1, ydir, 450,200);
       // if needed, move y one step
-      if(xSteps*xdir > 0 && dy > slope*(dx+0.5)){
+      
+      if(xSteps*xdir > 0 && dy > slope*(dx)){
         dx++;
-        oneStep(0, xdir,250,150);
+        oneStep(0, xdir,450,200);
       }
     }
     
