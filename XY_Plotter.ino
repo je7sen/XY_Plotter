@@ -59,7 +59,7 @@ AccelStepper stepper_y(forwardstep2, backwardstep2);
 const int PEN_SERVO_PIN = 9;
 
 int penAngleUp = 120;
-int penAngleDown = 90;
+int penAngleDown = 81;
 
 Servo penServo;
 
@@ -85,11 +85,11 @@ boolean xfinish;
 void setup(){
     
     stepper_x.setMaxSpeed(800.0);
-    stepper_x.setAcceleration(100.0);
+    stepper_x.setAcceleration(200.0);
     stepper_x.moveTo(5950);
     
     stepper_y.setMaxSpeed(800.0);
-    stepper_y.setAcceleration(100.0);
+    stepper_y.setAcceleration(200.0);
     stepper_y.moveTo(1600);
   
 
@@ -124,7 +124,7 @@ void loop() {
   // wait for data to come
   while(Serial.available() < 1)
   {
-    delay(10);
+    delay(1);
   }
   // start if the char 'S' is sent, finish if 'T' is sent
   if(Serial.peek() == 'S')
@@ -134,7 +134,7 @@ void loop() {
     zdown = false;
     Serial.println("S");
     Serial.read();
-    delay(10);
+    delay(15);
    }
    
   else if(Serial.peek() == 'T')
@@ -143,10 +143,10 @@ void loop() {
     started = false;
     Serial.println("T");
     Serial.read();
-    delay(10);
+    delay(15);
     raisePen();
     drawLine(0.0, 0.0);
-    delay(10);
+    delay(15);
     //disable motor to save power
     motor_x.release();
     motor_y.release();
@@ -223,7 +223,7 @@ void loop() {
     }
     
     Serial.write(7);
-    delay(10);
+    delay(15);
   }
   
   else if(Serial.peek() == 'Z')
@@ -238,7 +238,7 @@ void loop() {
     }
     
     Serial.write(7);
-    delay(10);
+    delay(15);
   }
   
   else 
@@ -262,17 +262,17 @@ void loop() {
           complete = true;
           xfinish = true;
           Serial.println(".x");
-          delay(10);
+          delay(15);
         }
         else if(tmpchar == '-'){
           sign = -1;
           Serial.println("-x");
-          delay(10);
+          delay(15);
           
         }else{
           newx = (newx*10.0) + tmpchar-'0';
           Serial.println(newx);
-          delay(10);
+          delay(15);
         }
         charcount++;
         while(Serial.available() > 0){
@@ -285,7 +285,7 @@ void loop() {
         Serial.read(); // clear the port
       }
       Serial.write(charcount); // write a verification byte
-      delay(10);
+      delay(15);
     }
     // wait for the y data
     //while(Serial.available() < 1){
@@ -302,25 +302,25 @@ void loop() {
       while(!complete){
         
         while(Serial.available() < 1){
-          delay(10);
+          delay(1);
         }
         tmpchar = Serial.read();
         if(tmpchar == '.'){
           complete = true;
           xfinish = false;
           Serial.println(".y");
-          delay(10);
+          delay(15);
 
         }
         else if(tmpchar == '-'){
           sign = -1;
           Serial.println("-y");
-          delay(10);
+          delay(15);
           
         }else{
           newy = (newy*10.0) + tmpchar-'0';
           Serial.println(newy);
-          delay(10);       
+          delay(15);       
           
         }
         charcount++;
@@ -334,16 +334,16 @@ void loop() {
         Serial.read(); // clear the port
       }
       Serial.write(charcount); // send verification byte
-      delay(10);
+      delay(15);
     }
     // now we have newx and newy. 
     drawLine(newx, newy);
-    delay(10);
+    delay(15);
     //release motor to save power
     motor_x.release();
     motor_y.release();
     Serial.write('D');
-    delay(10);
+    delay(15);
     
   }
   while(Serial.available()>0)
@@ -358,7 +358,7 @@ void raisePen(){
 
   if (isPenDown()) {
     penServo.write(penAngleUp);
-    delay(10);
+    delay(15);
   }
 }
 
@@ -366,7 +366,7 @@ void lowerPen(){
 
   if (!isPenDown()) {
     penServo.write(penAngleDown);
-    delay(10);
+    delay(15);
 }}
 
 boolean isPenDown() {
@@ -428,49 +428,73 @@ void drawLine(float x2, float y2){
   // determine the direction and number of steps
   xdir = 1;
   if(x2-posmm[0] < 0 ) xdir = -1;
-  xSteps = int((x2-posmm[0])/stepSize[0] + 0.5*xdir);
+  xSteps = int((x2-posmm[0])/stepSize[0]);
+  
   ydir = 1;
   if(y2-posmm[1] < 0) ydir = -1;
-  ySteps = int((y2-posmm[1])/stepSize[1] + 0.5*ydir);
+  ySteps = int((y2-posmm[1])/stepSize[1]);
+  
   if(xSteps*xdir > 0){
-    slope = ySteps*1.0/(1.0*xSteps)*ydir*xdir;
+    slope = ((ySteps*1.0)/(1.0*xSteps))*ydir*xdir;
   }else{
     slope = 9999;
   }
   dx = 0;
   dy = 0;
 
-  if(xSteps*xdir > ySteps*ydir){
+  if((xSteps*xdir) > (ySteps*ydir)){
     while(dx < xSteps*xdir){
      
       // move one x step at a time
       dx++;
-      oneStep(0, xdir ,450,200);
+      oneStep(0, xdir ,450,90);
       // if needed, move y one step
       
-        if(ySteps*ydir > 0 && slope*dx > dy){
+        if((ySteps*ydir) > 0 && (slope*dx) > dy){
         dy++;
-        oneStep(1, ydir, 450 , 200);
+        oneStep(1, ydir, 450 , 90);
       }
       
       
     
     }
+    Serial.println("xSteps: ");
+    Serial.println(xSteps);
+    Serial.println("ySteps: ");
+    Serial.println(ySteps);
+     Serial.println("poss[x]: ");
+    Serial.println(poss[0]);
+    Serial.println("poss[1]: ");
+    Serial.println(poss[1]);
+    posmm[0]=x2;
+    posmm[1]=y2;
+    
     
   }
   else{
-    while(dy < ySteps*ydir){
+    while(dy < (ySteps*ydir)){
       
       // move one y step at a time
       dy++;
-      oneStep(1, ydir, 450,200);
+      oneStep(1, ydir, 450,90);
       // if needed, move y one step
       
-      if(xSteps*xdir > 0 && dy > slope*(dx)){
+      if((xSteps*xdir) > 0 && dy > (slope*dx)){
         dx++;
-        oneStep(0, xdir,450,200);
+        oneStep(0, xdir,450,90);
       }
     }
+    Serial.println("xSteps: ");
+    Serial.println(xSteps);
+    Serial.println("ySteps: ");
+    Serial.println(ySteps);
+    Serial.println("poss[x]: ");
+    Serial.println(poss[0]);
+    Serial.println("poss[1]: ");
+    Serial.println(poss[1]);
+    posmm[0]=x2;
+    posmm[1]=y2;
+    
     
   }
   // at this point we have drawn the line
